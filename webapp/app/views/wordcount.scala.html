@@ -1,0 +1,60 @@
+@(wsUrl: String)
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Word Count</title>
+
+        <script src="@routes.Assets.versioned("lib/vue/vue.js")"></script>
+        <script src="@routes.Assets.versioned("lib/lodash/lodash.js")"></script>
+
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            Twitter Word Counts
+
+            <div>
+                <table style="table-layout: auto">
+                    <th>Word</th>
+                    <th>Count</th>
+                    <tr v-for="word in wordcounts">
+
+                        <td>{{word.key}}</td>
+                        <td>{{word.val}}</td>
+
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+
+        <script>
+
+            var data = {wordcounts: []};
+            var app = new Vue({
+                el: '#app',
+                data: data
+            });
+
+
+            var highestVal = 0;
+            var ws = new WebSocket("@wsUrl");
+            ws.onmessage = function(event) {
+                var wordcount = JSON.parse(event.data);
+                if (wordcount.val > highestVal) {
+                    data.wordcounts.splice(0, null, wordcount);
+                    data.wordcounts.splice(5);
+                }
+            };
+
+        </script>
+    </body>
+</html>
