@@ -4,4 +4,4 @@
 GET     /                                   controllers.HomeController.wordcount
 GET     /wordcount                          controllers.HomeController.wordcount
 GET     /wordcount-ws                       controllers.HomeController.wordcountWs
-GET     /assets/*file                    controllers.Assets.versioned(path="/public", file)
+GET     /assets/*file                    controllers.Assets.at(path="/public", file)

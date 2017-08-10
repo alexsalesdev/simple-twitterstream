@@ -2,17 +2,17 @@ package controllers
 
 import javax.inject._
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{ActorSystem}
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.scaladsl.{Flow, Sink}
 import play.api.Configuration
-import play.api.mvc.{Action, Controller, WebSocket}
-import play.api.libs.json.{JsValue, Json}
-import play.api.libs.streams.ActorFlow
-import services.{Kafka, WordCountActor}
+import play.api.mvc._
+import services.{Kafka}
+
+import scala.util.parsing.json.JSONObject
 
 @Singleton
-class HomeController @Inject() (kafka: Kafka, configuration: Configuration) extends Controller {
+class HomeController @Inject() (cc: ControllerComponents, kafka : Kafka, configuration: Configuration) extends AbstractController(cc) {
 
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
@@ -21,19 +21,19 @@ class HomeController @Inject() (kafka: Kafka, configuration: Configuration) exte
     Ok(views.html.wordcount(routes.HomeController.wordcountWs().webSocketURL()))
   }
 
-  // sink is incoming driver messages
-  // source is outgoing rider messages
-//  def wordcountWs = WebSocket.accept[String, String] { request =>
-//    ActorFlow.actorRef { out =>
-//      WordCountActor.props(kafka, configuration, out)
-//    }
-//  }
 
   def wordcountWs = WebSocket.accept[String, String] { _ =>
     val sink = Sink.foreach[String](println)
 
-    val source = kafka.source("word-count")
-      .map(f => Json.obj("key" -> f.key(), "val" -> f.value().toString).toString())
+    val source = kafka.source("word-count").fold(Map.empty[String, Long]) { (acc, kv) =>
+      val k = kv.key()
+      val v = kv.value()
+      val oldV = acc.get(k).getOrElse(0l)
+      val newV = oldV + v
+
+      acc + (k -> newV)
+    }.map(m => JSONObject(m).toString());
+
     Flow.fromSinkAndSource(sink, source)
   }
 

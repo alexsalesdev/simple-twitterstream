@@ -6,4 +6,6 @@ libraryDependencies ++= Seq(
   "org.webjars" % "lodash" % "4.17.4"
 )
 
+libraryDependencies += guice
+
 pipelineStages := Seq(digest)
