@@ -50,7 +50,9 @@
             var ws = new WebSocket("@wsUrl");
             ws.onmessage = function(event) {
                 var wordcount = JSON.parse(event.data);
+                console.log(wordcount);
                 if (wordcount.val > highestVal) {
+                    highestVal = wordcount.val;
                     data.wordcounts.splice(0, null, wordcount);
                     data.wordcounts.splice(5);
                 }
