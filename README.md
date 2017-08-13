@@ -23,7 +23,7 @@ Start Twitter Streamer App
 
 - twitter stream config, provide your details
 
-
+```
     twitter {
       consumer_key = ""
       consumer_secret = ""
@@ -31,9 +31,11 @@ Start Twitter Streamer App
       token_secret = ""
       terms = ["hashtag", "#hashtag"]
     }
+```
 
+```
     ./sbt twitterStreamerApp/run
-    
+```
 
     
 Start Word Count Engine 
