@@ -1,5 +1,4 @@
 name := "kafka-to-cassandra"
-scalaVersion := "2.11.8" // TODO no 2.12 yet for spark
 
 libraryDependencies ++= Seq(
   "org.apache.spark" % "spark-core_2.11" % "2.1.0",

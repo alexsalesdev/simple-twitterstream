@@ -9,5 +9,5 @@ libraryDependencies ++= Seq(
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.8.4",
   "com.typesafe.akka" %% "akka-stream-kafka" % "0.16",
   "org.apache.kafka" % "kafka-streams" % "0.10.2.1",
-  "com.typesafe.play" %% "play-json" % "2.5.12"
+  "com.typesafe.play" %% "play-json" % "2.6.3"
 )

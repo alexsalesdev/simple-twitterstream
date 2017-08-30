@@ -16,5 +16,5 @@ libraryDependencies ++= Seq(
   "com.twitter" % "hbc-core" % hbcCoreVersion,
   "com.typesafe.akka" %% "akka-stream-kafka" % "0.16",
   "com.google.code.gson" % "gson" % gsonVersion,
-  "com.typesafe.play" %% "play-json" % "2.6.0-M1"
+  "com.typesafe.play" %% "play-json" % "2.6.3"
 )

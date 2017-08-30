@@ -53,6 +53,8 @@ object KafkaToCassandra extends App {
   jobStream.saveToCassandra("wordcountapp", "wordcount", columnMapping, cassandraWriteConf)
   jobStream.foreachRDD(_.toDF().show())
 
+
+
   streamingContext.start()
   streamingContext.awaitTermination()
 

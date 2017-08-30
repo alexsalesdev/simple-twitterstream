@@ -4,7 +4,7 @@ name := "twitterstream"
 version := "1.0"
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.12.3",
+  scalaVersion := "2.11.8",
 
   libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "3.0.1" % "test",
