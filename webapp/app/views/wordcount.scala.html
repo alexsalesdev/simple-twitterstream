@@ -22,6 +22,9 @@
                 padding: 0;
             }
 
+            table, th, td {
+                border: 1px solid black;
+            }
         </style>
     </head>
     <body>
@@ -49,7 +52,7 @@
           const {Component} = React; // import {Component} from 'react';
           const {map} = _; // import {map} from 'lodash'
 
-            const wsUrl = `@wsUrl`;
+            const wsUrl = '@wsUrl';
 
             class WordCount extends Component {
                 constructor(props, context) {
@@ -58,36 +61,32 @@
 
                 componentDidMount() {
                     const ws = new WebSocket(wsUrl);
-                    this.setState({
-                                highestVal: 0,
-                                wordcounts :  []
-                            });
 
                     ws.onmessage = (event) => {
                         const wordcount = JSON.parse(event.data);
-                        console.log(wordcount);
-                        if (this.state.highestVal != null && wordcount.val > this.state.highestVal) {
-                            this.setState({
-                                highestVal: wordcount.val,
-                                wordcounts :  this.state.wordcounts.splice(0, null, wordcount).splice(5)
-                            });
-                        }
+                        this.updateItem(wordcount);
                     };
                 }
 
                 /* EVENT HANDLERS */
-                updateItem() {
-                    this.props.dispatch(updateItemAction())
+                updateItem(wordcount) {
+                    this.props.dispatch(updateItemAction(wordcount))
                 }
 
                 render() {
-
-                    const {wordcounts, updateItem} = this.props;
+                    const {wordcounts} = this.props;
 
 
                     return (
                     <div>
                         <table>
+                          <thead>
+                            <tr>
+                              <th>KEY</th>
+                              <th>VALUE</th>
+                            </tr>
+                          </thead>
+
                           <tbody>
                             {map(wordcounts, (item, index) => {
                               return (<tr key={index}>
@@ -107,8 +106,9 @@
               // When state changes, this method is called, which then you can use to customly
               // map the state into props that your React component can use
               const mapStateToProps = (state) => {
+                 if (state == null) return {wordcounts: []};
                 return {
-                  items: state.items,
+                  wordcounts: state.wordcounts,
                 }
               }
 
@@ -116,34 +116,58 @@
               // Action creators allow you to communicate with the redux store
               // You always send an object with at minimum a property called `type` aka event name
               // Then send an arbitrary data alongside it
-              const updateItemAction = () => {
+              const updateItemAction = (wordcount) => {
                 return {
-                  type: 'UPDATE_ITEM'
+                  type: 'UPDATE_ITEM',
+                  payload: wordcount
                 }
               }
 
 
-              const wordCounterReducer = (state = {items: []}, action) => {
-                let items = state.items.slice(); // Nice hack to truely clone an array without reference
+              const wordCounterReducer = (state = {wordcounts: [], highestVal: 0}, action) => {
+                let wordcounts = state.wordcounts.slice(); // Nice hack to truely clone an array without reference
+                let wordcount = action.payload;
                 // This is quite a common way of deciding which event to process
                 // Note: ALL events will be coming through this reducer
-                console.log('Actions', action); // Open your console to see what actions look like
+                //console.log('Actions', action); // Open your console to see what actions look like
                 // Even better, install Redux DevTools and your mind will be blown
                 switch (action.type) {
                   case 'UPDATE_ITEM':
-                    items.push('') // Add an extra element to items
+                      if (wordcount.val > state.highestVal) {
+                            // As above, we have to return a new state object each time (Redux store is immutable)
+                            // It makes sure we know our data can only be modified in one visible way
+                            // Also lets us time travel through our application state!
+
+                            var found = false;
+                            for(var i = 0; i < wordcounts.length; i++) {
+                                if (wordcounts[i].key == wordcount.key) {
+                                    delete wordcounts[i]
+                                    break;
+                                }
+                            }
+
+
+                            wordcounts.splice(0, null, wordcount);
+                            wordcounts.splice(5);
+                            wordcounts.sort(function(a, b){
+                                if (a.val > b.val) return -1;
+                                if (a.val < b.val) return 1;
+                                return 0;
+                            });
+
+
+                            const newState = {
+                              highestVal: wordcount.val,
+                              wordcounts : wordcounts
+                            }
+                            //console.log(newState);
+                            return newState;
+                       }
                     break;
                 }
-                // As above, we have to return a new state object each time (Redux store is immutable)
-                // It makes sure we know our data can only be modified in one visible way
-                // Also lets us time travel through our application state!
-                const newState = {
-                  items: items,
-                  highestVal: 0,
-                  wordcounts: {}
-                }
-                console.log('Current State', newState);
-                return newState;
+
+
+                return state;
               }
 
                /* REDUX STORE */
@@ -153,10 +177,8 @@
               // The third is usually where enhancers/middleware goes
               // In this example it just loads Redux DevTools so everyone can play around
               let store = createStore(wordCounterReducer, {
-                items: [],
-                highestVal: 0,
-                wordcounts: {}
-
+                  highestVal: 0,
+                  wordcounts :  []
               }, window.devToolsExtension ? window.devToolsExtension() : undefined)
 
         const WordCountApp = connect(
