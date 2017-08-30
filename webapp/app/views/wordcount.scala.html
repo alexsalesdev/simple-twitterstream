@@ -6,8 +6,14 @@
         <title>Word Count</title>
 
 
-        <script src="@routes.Assets.at("lib/vue/vue.js")"></script>
-        <script src="@routes.Assets.at("lib/lodash/lodash.js")"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.11.2/lodash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/3.5.2/redux.js" type="text/javascript"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js" type="text/javascript"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-with-addons.js" type="text/javascript"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react-redux/4.4.5/react-redux.js" type="text/javascript"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js" type="text/javascript"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js" type="text/javascript"></script>
+
 
         <style>
             html, body {
@@ -16,48 +22,182 @@
                 padding: 0;
             }
 
+            table, th, td {
+                border: 1px solid black;
+            }
         </style>
     </head>
     <body>
         <div id="app">
-            Twitter Word Counts
+            @*Twitter Word Counts*@
 
-            <div>
-                <table style="table-layout: auto">
-                    <th>Word</th>
-                    <th>Count</th>
-                    <tr v-for="word in wordcounts">
+            @*<div>*@
+                @*<table style="table-layout: auto">*@
+                    @*<th>Word</th>*@
+                    @*<th>Count</th>*@
+                    @*<tr v-for="word in wordcounts">*@
 
-                        <td>{{word.key}}</td>
-                        <td>{{word.val}}</td>
+                        @*<td>{{word.key}}</td>*@
+                        @*<td>{{word.val}}</td>*@
 
-                    </tr>
-                </table>
-            </div>
+                    @*</tr>*@
+                @*</table>*@
+            @*</div>*@
         </div>
 
+        <script type="text/babel">
+            /* IMPORTS */
+          const {connect, Provider} = ReactRedux; // import {connect, Provider} from 'react-redux';
+          const {createStore, compose} = Redux; // import {createStore} from 'redux';
+          const {Component} = React; // import {Component} from 'react';
+          const {map} = _; // import {map} from 'lodash'
 
-        <script>
+            const wsUrl = '@wsUrl';
 
-            var data = {wordcounts: []};
-            var app = new Vue({
-                el: '#app',
-                data: data
-            });
-
-
-            var highestVal = 0;
-            var ws = new WebSocket("@wsUrl");
-            ws.onmessage = function(event) {
-                var wordcount = JSON.parse(event.data);
-                console.log(wordcount);
-                if (wordcount.val > highestVal) {
-                    highestVal = wordcount.val;
-                    data.wordcounts.splice(0, null, wordcount);
-                    data.wordcounts.splice(5);
+            class WordCount extends Component {
+                constructor(props, context) {
+                    super(props, context);
                 }
-            };
+
+                componentDidMount() {
+                    const ws = new WebSocket(wsUrl);
+
+                    ws.onmessage = (event) => {
+                        const wordcount = JSON.parse(event.data);
+                        this.updateItem(wordcount);
+                    };
+                }
+
+                /* EVENT HANDLERS */
+                updateItem(wordcount) {
+                    this.props.dispatch(updateItemAction(wordcount))
+                }
+
+                render() {
+                    const {wordcounts} = this.props;
+
+
+                    return (
+                    <div>
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>KEY</th>
+                              <th>VALUE</th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            {map(wordcounts, (item, index) => {
+                              return (<tr key={index}>
+                                <td>{item.key}</td>
+                                <td>{item.val}</td>
+                              </tr>);
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                }
+            }
+
+            /* MAP STATE TO PROPS */
+              // Probably the most important method of the demo which handles the React/Redux integration.
+              // When state changes, this method is called, which then you can use to customly
+              // map the state into props that your React component can use
+              const mapStateToProps = (state) => {
+                 if (state == null) return {wordcounts: []};
+                return {
+                  wordcounts: state.wordcounts,
+                }
+              }
+
+              /* ACTION CREATORS */
+              // Action creators allow you to communicate with the redux store
+              // You always send an object with at minimum a property called `type` aka event name
+              // Then send an arbitrary data alongside it
+              const updateItemAction = (wordcount) => {
+                return {
+                  type: 'UPDATE_ITEM',
+                  payload: wordcount
+                }
+              }
+
+
+              const wordCounterReducer = (state = {wordcounts: [], highestVal: 0}, action) => {
+                let wordcounts = state.wordcounts.slice(); // Nice hack to truely clone an array without reference
+                let wordcount = action.payload;
+                // This is quite a common way of deciding which event to process
+                // Note: ALL events will be coming through this reducer
+                //console.log('Actions', action); // Open your console to see what actions look like
+                // Even better, install Redux DevTools and your mind will be blown
+                switch (action.type) {
+                  case 'UPDATE_ITEM':
+                      if (wordcount.val > state.highestVal) {
+                            // As above, we have to return a new state object each time (Redux store is immutable)
+                            // It makes sure we know our data can only be modified in one visible way
+                            // Also lets us time travel through our application state!
+
+                            var found = false;
+                            for(var i = 0; i < wordcounts.length; i++) {
+                                if (wordcounts[i].key == wordcount.key) {
+                                    delete wordcounts[i]
+                                    break;
+                                }
+                            }
+
+
+                            wordcounts.splice(0, null, wordcount);
+                            wordcounts.splice(5);
+                            wordcounts.sort(function(a, b){
+                                if (a.val > b.val) return -1;
+                                if (a.val < b.val) return 1;
+                                return 0;
+                            });
+
+
+                            const newState = {
+                              highestVal: wordcount.val,
+                              wordcounts : wordcounts
+                            }
+                            //console.log(newState);
+                            return newState;
+                       }
+                    break;
+                }
+
+
+                return state;
+              }
+
+               /* REDUX STORE */
+              // Create store initializes our Redux store and only has to be called once
+              // The first argument is our `appReducer` defined above, it is almost like a listener
+              // The second is just our initial state which is just a Javascript object
+              // The third is usually where enhancers/middleware goes
+              // In this example it just loads Redux DevTools so everyone can play around
+              let store = createStore(wordCounterReducer, {
+                  highestVal: 0,
+                  wordcounts :  []
+              }, window.devToolsExtension ? window.devToolsExtension() : undefined)
+
+        const WordCountApp = connect(
+            mapStateToProps
+        )(WordCount)
+
+            // ReactDOM simply renders our component to the page
+          // Though we've wrapped our component with something called `Providor`
+          // `Providor` is a magic react-redux component which lets our store be
+          // accessible by our mapStateToProps methods. Otherwise we would have
+          // to pass it manually every time
+          ReactDOM.render(
+            <Provider store={store}>
+              <WordCountApp />
+            </Provider>,
+            document.getElementById('app')
+          );
 
         </script>
+
     </body>
 </html>
