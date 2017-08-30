@@ -17,7 +17,15 @@ Architecture diagram
 Start Kafka Server 
 
     ./sbt kafkaServer/run
- 
+
+Start Cassandra
+
+    ./sbt cassandraServer/run
+    
+
+Start Kafka To Cassandra
+
+     ./sbt kafkaToCassandra/run
  
 Start Twitter Streamer App
 
@@ -46,3 +54,5 @@ Start Word Count Engine
 Start Webapp
      
      ./sbt webapp/run
+     
+     

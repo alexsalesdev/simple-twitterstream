@@ -16,6 +16,10 @@ lazy val kafkaCommon = (project in file("kafka-common")).settings(commonSettings
 
 lazy val kafkaServer = (project in file("kafka-server")).settings(commonSettings: _*)
 
+lazy val cassandraServer = (project in file("cassandra-server")).settings(commonSettings: _*)
+
+lazy val kafkaToCassandra = (project in file("kafka-to-cassandra")).settings(commonSettings: _*).dependsOn(kafkaCommon)
+
 lazy val twitterStreamerEngine = (project in file("twitter-streamer-app")).settings(commonSettings: _*).dependsOn(kafkaCommon)
 
 lazy val wordCountEngine = (project in file("word-count-engine")).settings(commonSettings: _*).dependsOn(kafkaCommon)
