@@ -25,7 +25,7 @@
         </style>
     </head>
     <body>
-        @*<div id="app">*@
+        <div id="app">
             @*Twitter Word Counts*@
 
             @*<div>*@
@@ -40,7 +40,7 @@
                     @*</tr>*@
                 @*</table>*@
             @*</div>*@
-        @*</div>*@
+        </div>
 
         <script type="text/babel">
             /* IMPORTS */
@@ -58,10 +58,15 @@
 
                 componentDidMount() {
                     const ws = new WebSocket(wsUrl);
+                    this.setState({
+                                highestVal: 0,
+                                wordcounts :  []
+                            });
+
                     ws.onmessage = (event) => {
                         const wordcount = JSON.parse(event.data);
                         console.log(wordcount);
-                        if (wordcount.val > this.state.highestVal) {
+                        if (this.state.highestVal != null && wordcount.val > this.state.highestVal) {
                             this.setState({
                                 highestVal: wordcount.val,
                                 wordcounts :  this.state.wordcounts.splice(0, null, wordcount).splice(5)
@@ -77,14 +82,14 @@
 
                 render() {
 
-                    const {items, updateItem} = this.props;
+                    const {wordcounts, updateItem} = this.props;
 
 
                     return (
                     <div>
                         <table>
                           <tbody>
-                            {map(items, (item, index) => {
+                            {map(wordcounts, (item, index) => {
                               return (<tr key={index}>
                                 <td>{item.key}</td>
                                 <td>{item.val}</td>
@@ -134,11 +139,41 @@
                 // Also lets us time travel through our application state!
                 const newState = {
                   items: items,
+                  highestVal: 0,
+                  wordcounts: {}
                 }
                 console.log('Current State', newState);
                 return newState;
               }
 
+               /* REDUX STORE */
+              // Create store initializes our Redux store and only has to be called once
+              // The first argument is our `appReducer` defined above, it is almost like a listener
+              // The second is just our initial state which is just a Javascript object
+              // The third is usually where enhancers/middleware goes
+              // In this example it just loads Redux DevTools so everyone can play around
+              let store = createStore(wordCounterReducer, {
+                items: [],
+                highestVal: 0,
+                wordcounts: {}
+
+              }, window.devToolsExtension ? window.devToolsExtension() : undefined)
+
+        const WordCountApp = connect(
+            mapStateToProps
+        )(WordCount)
+
+            // ReactDOM simply renders our component to the page
+          // Though we've wrapped our component with something called `Providor`
+          // `Providor` is a magic react-redux component which lets our store be
+          // accessible by our mapStateToProps methods. Otherwise we would have
+          // to pass it manually every time
+          ReactDOM.render(
+            <Provider store={store}>
+              <WordCountApp />
+            </Provider>,
+            document.getElementById('app')
+          );
 
         </script>
 
