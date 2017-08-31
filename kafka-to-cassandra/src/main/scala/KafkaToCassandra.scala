@@ -18,6 +18,7 @@ object KafkaToCassandra extends App {
   val cluster = Cluster.builder().addContactPoint("127.0.0.1").build()
   val cassandraSession = cluster.connect()
   cassandraSession.execute("CREATE KEYSPACE IF NOT EXISTS wordcountapp WITH replication = {'class':'SimpleStrategy', 'replication_factor':3};")
+  cassandraSession.execute("DROP TABLE IF EXISTS wordcountapp.wordcount;")
   cassandraSession.execute("CREATE TABLE IF NOT EXISTS wordcountapp.wordcount (key text primary key, value bigint);")
   cluster.close()
 

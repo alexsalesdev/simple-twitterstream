@@ -45,7 +45,7 @@ class HomeController @Inject() (cc: ControllerComponents, kafka : Kafka, configu
     val resultMap = context.cassandraTable[(Long, String)]("wordcountapp", "wordcount")
       .select("value", "key")
       .sortByKey(false)
-      .take(10)
+      .take(20)
       .toSeq
 
     Result(
