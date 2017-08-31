@@ -21,6 +21,12 @@ class HomeController @Inject() (cc: ControllerComponents, kafka : Kafka, configu
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
 
+  val conf = new SparkConf(true).set("spark.cassandra.connection.host", "127.0.0.1")
+    .set("spark.driver.allowMultipleContexts", "true")
+    .set("spark.sql.warehouse.dir", "spark-warehouse")
+  val context = new SparkContext("local", "WebappCassandra", conf)
+
+
   def wordcount = Action { implicit request =>
     Ok(views.html.wordcount(routes.HomeController.wordcountWs().webSocketURL()))
   }
@@ -35,15 +41,11 @@ class HomeController @Inject() (cc: ControllerComponents, kafka : Kafka, configu
   }
 
   def wordcountApi = Action {
-    val conf = new SparkConf(true).set("spark.cassandra.connection.host", "127.0.0.1")
-      .set("spark.driver.allowMultipleContexts", "true")
-      .set("spark.sql.warehouse.dir", "spark-warehouse")
-    val context = new SparkContext("local", "WebappCassandra", conf)
 
     val resultMap = context.cassandraTable[(Long, String)]("wordcountapp", "wordcount")
       .select("value", "key")
       .sortByKey(false)
-      .take(5)
+      .take(10)
       .toSeq
 
     Result(
