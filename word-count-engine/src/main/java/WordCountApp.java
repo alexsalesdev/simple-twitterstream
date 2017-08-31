@@ -4,7 +4,9 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -19,12 +21,17 @@ public class WordCountApp {
         config.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         config.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
+        List<String> myBagOfWords = Arrays.asList(new String[] {"https", "http", "hashtag", "rt"});
+
         KStreamBuilder builder = new KStreamBuilder();
         KStream<String, String> textLines = builder.stream("tweet");
         final KStream<String, String> filteredTextLines = textLines
                 .flatMapValues(textLine -> Arrays.asList(textLine.toLowerCase().split("\\W+")))
-                .filter((key, word) -> !word.replaceAll("/[^A-z]+/g", "").equals(""));
-        filteredTextLines.foreach((k, v) -> System.out.println(String.format("key: [%s], value: [%s]", k, v)));
+                .filter((key, word) -> {
+                    final String newWord = word.replaceAll("/[^A-z]+/g", "").toLowerCase();
+                    return !newWord.equals("") && !Stopwords.isStopword(newWord) && !myBagOfWords.contains(newWord);
+                });
+//        filteredTextLines.foreach((k, v) -> System.out.println(String.format("key: [%s], value: [%s]", k, v)));
         filteredTextLines
                 .groupBy((key, word) -> word)
                 .count("Counts")
