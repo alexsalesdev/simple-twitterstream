@@ -3,5 +3,6 @@
 # ~~~~
 GET     /                                   controllers.HomeController.wordcount
 GET     /wordcount                          controllers.HomeController.wordcount
+GET     /api/wordcount                      controllers.HomeController.wordcountApi
 GET     /wordcount-ws                       controllers.HomeController.wordcountWs
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

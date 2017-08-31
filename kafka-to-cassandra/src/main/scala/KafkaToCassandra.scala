@@ -22,7 +22,9 @@ object KafkaToCassandra extends App {
   cluster.close()
 
 
-  val conf = new SparkConf(true).set("spark.cassandra.connection.host", "127.0.0.1").set("spark.sql.warehouse.dir", "spark-warehouse")
+  val conf = new SparkConf(true).set("spark.cassandra.connection.host", "127.0.0.1")
+    .set("spark.sql.warehouse.dir", "spark-warehouse")
+    .set("spark.driver.allowMultipleContexts", "true")
   val context = new SparkContext("local", "KafkaToCassandra", conf)
   val streamingContext = new StreamingContext(context, Seconds(1))
   val sparkSession = SparkSession.builder.config(conf).getOrCreate()
