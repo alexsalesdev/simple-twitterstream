@@ -42,7 +42,7 @@ Start Twitter Streamer App
 ```
 
 ```
-    ./sbt twitterStreamerApp/run
+    ./sbt twitterStreamerEngine/run
 ```
 
     
